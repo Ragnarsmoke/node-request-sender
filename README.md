@@ -4,7 +4,7 @@
 Node HTTP request sender with repeat functionality
 
 ## Setup<a name="setup"></a>
-Make sure you have [https://nodejs.org/](NodeJS) installed on your system
+Make sure you have [NodeJS](https://nodejs.org/) installed on your system
 1. Clone the repository `git clone https://github.com/Ragnarsmoke/node-request-sender`
 2. Install the required npm dependencies locally with `npm install`,
 or if you wish to install the dependencies globally on your system(Requires administrative privileges),
