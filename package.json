@@ -1,0 +1,7 @@
+{
+    "name": "request-sender",
+    "dependencies": {
+        "follow-redirects": "^1.2.5",
+        "lodash": "^4.17.4"
+    }
+}
