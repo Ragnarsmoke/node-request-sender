@@ -1,2 +1,2 @@
 # node-request-sender
-Node HTTP request sender/spammer
+Node HTTP request sender with repeat functionality
