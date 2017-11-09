@@ -1,9 +1,29 @@
 {
-    "name": "request-sender",
+    "name": "node-request-sender",
+    "author": "Emil Bertilsson",
+    "license": "GPL-3.0",
+    "version": "0.1.0",
+    "description": "A HTTP Request sender/repeater program written in NodeJS",
+    "main": "app.js",
+    "scripts": {
+        "start": "node app.js"
+    },
     "dependencies": {
         "chalk": "^2.3.0",
         "follow-redirects": "^1.2.5",
         "lodash": "^4.17.4",
         "vorpal": "^1.12.0"
-    }
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Ragnarsmoke/node-request-sender"
+    },
+    "keywords": [
+        "node",
+        "http",
+        "request",
+        "repeater",
+        "sender",
+        "program"
+    ]
 }
