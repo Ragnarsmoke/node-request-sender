@@ -3,7 +3,7 @@
     "author": "Emil Bertilsson",
     "license": "GPL-3.0",
     "version": "0.1.0",
-    "description": "A HTTP Request sender/repeater program written in NodeJS",
+    "description": "Node HTTP request sender with repeat functionality",
     "main": "app.js",
     "scripts": {
         "start": "node app.js"
