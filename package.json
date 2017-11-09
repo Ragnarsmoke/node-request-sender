@@ -1,6 +1,7 @@
 {
     "name": "request-sender",
     "dependencies": {
+        "chalk": "^2.3.0",
         "follow-redirects": "^1.2.5",
         "lodash": "^4.17.4"
     }
