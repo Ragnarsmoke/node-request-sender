@@ -1,7 +1,7 @@
 'use strict';
 
-var _ = require("lodash");
-var querystring = require("querystring");
+var _ = require('lodash');
+var querystring = require('querystring');
 
 /**
  * Request data encoder class
@@ -28,7 +28,7 @@ var RequestDataEncoder = function () {
         // Plain text encoder
         text: {
             encode: function (data) {
-                if (data.hasOwnProperty("text")) {
+                if (data.hasOwnProperty('text')) {
                     return data.text;
                 } else {
                     return "";
@@ -47,9 +47,12 @@ var RequestDataEncoder = function () {
     };
 
     /**
-     * Gets the available encoders
+     * Gets the valid data encoders
+     *
+     * @return {array} Valid data encoders
      */
-    var getEncoders = function () {
+    var getValidEncoders = function () {
+        return _.keys(encoders);
     };
 
     /**
@@ -69,6 +72,7 @@ var RequestDataEncoder = function () {
 
     return {
         encode: encode,
+        getValidEncoders: getValidEncoders,
         encoderExists: encoderExists
     };
 

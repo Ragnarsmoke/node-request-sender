@@ -54,7 +54,7 @@ var SyntaxProcessor = function () {
         // Random text selector
         // Usage: $text('text1', 'text2', ...)
         text: {
-            args: "var",
+            args: 'var',
             callback: function () {
                 return getRandomElement(arguments);
             }
@@ -113,16 +113,11 @@ var SyntaxProcessor = function () {
      */
     var processExtension = function (func, args) {
         if (!extensions.hasOwnProperty(func)) {
-            console.log("Request sender error: Extension '" + func + "' does not exist!");
             return null;
         } else {
             var extension = extensions[func];
 
             if (args.length !== extension.args && extension.args !== "var") {
-                console.log(
-                    "Request sender error: Extension '" + func
-                    + "' requires " + extension.args + " arguments!"
-                );
                 return null;
             } else {
                 var result = extension.callback.apply(null, args);

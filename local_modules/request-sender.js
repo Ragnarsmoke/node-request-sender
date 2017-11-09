@@ -1,10 +1,10 @@
 'use strict';
 
-var SyntaxProcessor = require("./syntax-processor.js");
-var RequestDataEncoder = require("./request-data-encoder.js");
+var _ = require('lodash');
+var http = require('follow-redirects').http;
 
-var _ = require("lodash");
-var http = require("follow-redirects").http;
+var SyntaxProcessor = require('./syntax-processor.js');
+var RequestDataEncoder = require('./request-data-encoder.js');
 
 /**
  * Request sender class
@@ -26,7 +26,7 @@ var RequestSender = function () {
         ignoreErrors = false,
         ignoreTimeout = true,
         requestTimeout = 5000,
-        dataEncoderType = "querystring",
+        dataEncoderType = 'querystring',
         followRedirects = true,
         maxRedirects = 10;
 
@@ -35,10 +35,10 @@ var RequestSender = function () {
     var listeners = [];
 
     var requestOptions = {
-        host: "",
-        method: "GET",
+        host: '',
+        method: 'GET',
         port: 80,
-        path: "/",
+        path: '/',
         headers: {}
     };
 
@@ -47,11 +47,13 @@ var RequestSender = function () {
      *
      * @param {string} message Event message
      * @param {function} callback Callback function
+     * @param {boolean} isOnce Listen only once
      */
-    var addEventListener = function (message, callback) {
+    var addEventListener = function (message, callback, isOnce = false) {
         listeners.push({
             message: message,
-            callback: callback
+            callback: callback,
+            isOnce: isOnce
         });
     };
 
@@ -62,18 +64,41 @@ var RequestSender = function () {
      * @param {array} args Event arguments
      */
     var callListeners = function (message, args) {
-        _.each(listeners, function (entry) {
-            if (entry.message === message) {
+        var removeIndexes = [];
+
+        _.each(listeners, function (entry, index) {
+            if (typeof entry !== 'undefined'
+                && entry.message === message) {
                 entry.callback.apply(null, args);
+
+                if (typeof entry !== 'undefined'
+                    && entry.isOnce) {
+                    // TODO: Thread safety
+                    delete listeners[index];
+                }
             }
         });
     };
 
     /**
      * Creates a listener for the given message
+     *
+     * @param {string} message Message to listen to
+     * @param {function} callback Callback
      */
     var on = function (message, callback) {
         addEventListener(message, callback);
+    };
+
+    /**
+     * Creates a listener for the given message
+     * that removes itself after first message
+     *
+     * @param {string} message Message to listen to
+     * @param {function} callback Callback
+     */
+    var once = function (message, callback) {
+        addEventListener(message, callback, true);
     };
 
     /**
@@ -89,6 +114,15 @@ var RequestSender = function () {
         } else {
             return false;
         }
+    };
+
+    /**
+     * Gets the data encoder for the requests
+     *
+     * @return {string} Data encoder
+     */
+    var getDataEncoder = function () {
+        return dataEncoderType;
     };
 
     /**
@@ -108,6 +142,15 @@ var RequestSender = function () {
     var getRequestOptions = function () {
         return requestOptions;
     };
+
+    /**
+     * Gets the valid data encoders
+     *
+     * @return {array} Valid data encoders
+     */
+    var getValidEncoders = function () {
+        return RequestDataEncoder.getValidEncoders();
+    }
 
     /**
      * Sets the request timeout for the repeater
@@ -148,10 +191,19 @@ var RequestSender = function () {
     /**
      * Sets whether to follow redirects on the requests
      *
-     * @param {number} value Follow redirects
+     * @param {boolean} value Follow redirects
      */
     var setFollowRedirects = function (value) {
         followRedirects = value;
+    };
+
+    /**
+     * Gets whether to follow redirects on the requests
+     *
+     * @return {boolean} True if the the sender is following redirects, otherwise false
+     */
+    var isFollowingRedirects = function () {
+        return followRedirects;
     };
 
     /**
@@ -216,12 +268,12 @@ var RequestSender = function () {
     var getFullRequestPath = function () {
         var path = requestOptions.path;
 
-        if (path[0] !== "/") {
-            path = "/" + path;
+        if (path[0] !== '/') {
+            path = '/' + path;
         }
 
         return requestOptions.host
-            + ":" + requestOptions.port
+            + ':' + requestOptions.port
             + path;
     };
 
@@ -277,8 +329,8 @@ var RequestSender = function () {
 
         lockRequests = true;
 
-        callListeners("request-start", [data, requestOptions]);
-        var writeData = "";
+        callListeners('request-start', [data, requestOptions]);
+        var writeData = '';
 
         if (_.keys(data).length > 0) {
             var writeData = RequestDataEncoder.encode(
@@ -293,7 +345,7 @@ var RequestSender = function () {
                 followAllRedirects: followRedirects,
                 maxRedirects: maxRedirects,
                 headers: {
-                    "Content-Length": Buffer.byteLength(writeData)
+                    'Content-Length': Buffer.byteLength(writeData)
                 }
             }
         );
@@ -303,14 +355,14 @@ var RequestSender = function () {
             function (res) {
                 if (_.indexOf(HTTP_ERROR_CODES, res.statusCode) !== -1) {
                     failCount++;
-                    callListeners("request-fail", [data, res, requestOptions]);
+                    callListeners('request-fail', [data, res, requestOptions]);
 
                     if (isRepeating && !ignoreErrors) {
                         stopRepeater();
                     }
                 } else {
                     successCount++;
-                    callListeners("request-success", [data, res, requestOptions]);
+                    callListeners('request-success', [data, res, requestOptions]);
                 }
 
                 lockRequests = false;
@@ -323,10 +375,10 @@ var RequestSender = function () {
 
         request.on('error', function (err) {
             failCount++;
-            callListeners("request-error", [err, requestOptions]);
+            callListeners('request-error', [err, requestOptions]);
 
             // Stop the repeater only if the resource was not found
-            if (isRepeating && err.code == "ENOTFOUND") {
+            if (isRepeating && err.code == 'ENOTFOUND') {
                 stopRepeater();
             }
 
@@ -397,7 +449,7 @@ var RequestSender = function () {
             rInterval
         );
 
-        callListeners("repeater-start", [rInterval, count]);
+        callListeners('repeater-start', [rInterval, count]);
     };
 
     /**
@@ -409,7 +461,7 @@ var RequestSender = function () {
 
             clearInterval(intervalID);
 
-            callListeners("repeater-stop", [successCount, failCount]);
+            callListeners('repeater-stop', [successCount, failCount]);
 
             successCount = 0;
             failCount = 0;
@@ -431,16 +483,20 @@ var RequestSender = function () {
         getRequestData: getRequestData,
         getRequestTimeout: getRequestTimeout,
         getMaxRedirects: getMaxRedirects,
+        getDataEncoder: getDataEncoder,
         getSuccessCount: getSuccessCount,
         getFailCount: getFailCount,
         getFullRequestPath: getFullRequestPath,
+        getValidEncoders: getValidEncoders,
 
         isIgnoringErrors: isIgnoringErrors,
         isIgnoringTimeout: isIgnoringTimeout,
+        isFollowingRedirects: isFollowingRedirects,
         isRequestLocked: isRequestLocked,
         isRequestRepeating: isRequestRepeating,
 
         on: on,
+        once: once,
 
         sendRequest: sendRequest,
         autoSendRequest: autoSendRequest,
