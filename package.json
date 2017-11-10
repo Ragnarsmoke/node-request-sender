@@ -2,7 +2,7 @@
     "name": "node-request-sender",
     "author": "Emil Bertilsson",
     "license": "GPL-3.0",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Node HTTP request sender with repeat functionality",
     "main": "app.js",
     "scripts": {

@@ -385,6 +385,7 @@ var AppCli = function () {
             + "\r\n\t" + chalk.gray("If a count is not specified, it will continue until told to stop, for example")
             + "\r\n\t" + chalk.green("startrepeater 500")
             + "\r\n\t" + chalk.gray("The repeater will send the defined data fields, and re-evaluate the fields each iteration")
+            + "\r\n\r\n\t" + chalk.gray("To stop a running repeater, press Ctrl+C")
             + "\r\n\r\n\t" + chalk.gray("See the ")
             + chalk.green("help startrepeater")
             + chalk.gray(" command for more usage")
@@ -994,8 +995,8 @@ var AppCli = function () {
                 log(
                     chalk.whiteBright(util.format(
                         "Starting request repeater with %d repetitions (%dms interval)",
-                        rInterval,
-                        count
+                        count,
+                        rInterval
                     ))
                     + "\r\n"
                 );
