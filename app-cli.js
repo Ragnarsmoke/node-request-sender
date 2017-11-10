@@ -1,5 +1,7 @@
 'use strict';
 
+var SyntaxProcessor = require('./local_modules/syntax-processor');
+
 var _ = require('lodash');
 var chalk = require('chalk');
 var vorpal = require('vorpal')();
@@ -175,6 +177,221 @@ var AppCli = function () {
         printHeaders();
         log();
         printData();
+    };
+
+    /**
+     * Prints the documentation for a syntax extension
+     * 
+     * @param {string} name Extension name
+     * @param {Object} doc Extension documentation
+     */
+    var printExtensionDocumentation = function (name, extension) {
+        var doc = extension.doc;
+
+        log(chalk.whiteBright(util.format(
+            "%s:",
+            name
+        )));
+        log("\t" + chalk.gray(doc.description));
+
+        var argsConcat = "";
+
+        if (extension.args == "var") {
+            argsConcat = "...";
+        } else if (typeof doc.args !== 'undefined' && extension.args > 0) {
+            log("\r\n\t" + chalk.whiteBright("Arguments:"));
+
+            _.each(doc.args, function (entry) {
+                log("\t\t" + chalk.green(util.format(
+                    "%s : %s",
+                    entry.name,
+                    entry.type
+                )) + util.format(
+                    ", %s",
+                    entry.desc
+                ));
+            });
+
+            argsConcat = _.filter(_.mapValues(doc.args, function (arg) {
+                return arg.name;
+            }), function (value) {
+                return value;
+            }).join(', ');
+        }
+
+        log("\r\n\t" + chalk.whiteBright("Usage:"));
+        log("\t\t" + chalk.green(util.format(
+            "$%s(%s)",
+            name,
+            argsConcat
+        )));
+
+        log("\r\n\t" + chalk.whiteBright("Example usage:"));
+        log("\t\t" + chalk.gray(doc.sampleUsage));
+    };
+
+    /**
+     * Prints out the extensions documentation
+     */
+    var helpExtensions = function () {
+        var extensions = SyntaxProcessor.getExtensions();
+
+        log();
+        _.forOwn(extensions, function (extension, name) {
+            printExtensionDocumentation(name, extension);
+            log();
+        });
+
+        log(
+            chalk.whiteBright("Extension usage")
+            + "\r\n\tThe syntax is $functionName(functionArguments) and will be replaced upon sending the requests"
+            + "\r\n\r\n\tFor example, to generate a random  with 5-7 characters followed by 2-3 digits in the 'email' field"
+            + "\r\n\talong with a random 'password' field of 6 characters followed by 2-3 digits, use:"
+            + "\r\n\t" + chalk.green("editdata email \"$str(5,7)$num(2,3)@$mail()' password '$str(6,6)$num(2,3)\"")
+            + "\r\n\tOr to simply generate an 'email' field with randomized texts, use:"
+            + "\r\n\t" + chalk.green("editdata email \"$text('text1', 'text2', 'text3')@$mail()\"")
+            + "\r\n\tText arguments must be encased in single-quotation marks"
+            + "\r\n"
+        );
+    };
+
+    /**
+     * Prints out the syntax processor documentation
+     */
+    var helpUsage = function () {
+        log(
+            "\r\n" + chalk.whiteBright("Autoconfigure")
+            + "\r\n\t" + chalk.gray("To quickly setup the request sender options, there is an autoconfigure command")
+            + "\r\n\t" + chalk.gray("This will update the headers and in some cases the data encoder for common purpopses")
+            + "\r\n\t" + chalk.gray("For instance, if you wish to POST form data, use the "
+            + chalk.green("autoconfigure form"))
+            + "\r\n\t" + chalk.gray("command to quickly setup a form request sender,")
+            + chalk.gray(" or ") + chalk.green("autoconfigure get")
+            + "\r\n\t" + chalk.gray("to setup the requester to simply send regular GET requests")
+            + "\r\n\r\n\t" + chalk.gray("See the ")
+            + chalk.green("help autoconfigure")
+            + chalk.gray(" to see the available autoconfigure options")
+        );
+
+        log(
+            "\r\n" + chalk.whiteBright("Edit request options")
+            + "\r\n\t" + chalk.gray("To change the request options, use the ")
+            + chalk.green("editoptions") + chalk.gray(" command")
+            + "\r\n\t" + chalk.gray("This is used to change the destination host and path of the requests")
+            + "\r\n\t" + chalk.gray("For instance, to set the destination to http://example.com:80/test, use")
+            + "\r\n\t" + chalk.green("editoptions --host 'example.com' --port 80 --path '/test'")
+            + "\r\n\r\n\t" + chalk.gray("See the ")
+            + chalk.green("help editoptions")
+            + chalk.gray(" command for more usage")
+        );
+
+        log(
+            "\r\n" + chalk.whiteBright("Edit request headers")
+            + "\r\n\t" + chalk.gray("To change the request headers, use the ")
+            + chalk.green("editheaders") + chalk.gray(" command")
+            + "\r\n\t" + chalk.gray("You can set multiple headers at once, use")
+            + "\r\n\t" + chalk.green("editheaders header value anotherHeader anotherValue")
+            + chalk.gray(" and so on")
+            + "\r\n\t" + chalk.gray("Each header needs to be followed by a value")
+            + "\r\n\t" + chalk.gray("For instance, to set User-Agent to nodejs and Content-Type to application/json, use")
+            + "\r\n\t" + chalk.green("editheaders 'User-Agent' 'nodejs' 'Content-Type' 'application/json'")
+            + "\r\n\r\n\t" + chalk.gray("To remove a header, use the ")
+            + chalk.green("removeheader") + chalk.gray(" command")
+            + "\r\n\t" + chalk.gray("This also supports multiple headers at once, for instance")
+            + "\r\n\t" + chalk.green("removeheaders 'Content-Type' 'User-Agent'")
+            + "\r\n\r\n\t" + chalk.gray("See the ")
+            + chalk.green("help editheaders")
+            + chalk.gray(" and ")
+            + chalk.green("help removeheaders")
+            + chalk.gray(" command for more usage")
+        );
+
+        log(
+            "\r\n" + chalk.whiteBright("Edit request sender options")
+            + "\r\n\t" + chalk.gray("To change the request sender options, use the ")
+            + chalk.green("editsender") + chalk.gray(" command")
+            + "\r\n\t" + chalk.gray("These settings include request settings, requester and repeater behaviours")
+            + "\r\n\t" + chalk.gray("The usage is ")
+            + chalk.green("editsender --key value")
+            + "\r\n\t" + chalk.gray("For instance, to set the request timeout to 5000ms and disallow following redirects, use")
+            + "\r\n\t" + chalk.green("editsender --no-follow-redirects --timeout 5000")
+            + "\r\n\r\n\t" + chalk.gray("To make the repeater continue sending requests even on HTTP errors, use")
+            + "\r\n\t" + chalk.green("editsender --ignore-errors")
+            + "\r\n\r\n\t" + chalk.gray("See the ")
+            + chalk.green("help editsender")
+            + chalk.gray(" command for more usage")
+        );
+
+        log(
+            "\r\n" + chalk.whiteBright("Edit request data")
+            + "\r\n\t" + chalk.gray("To change the request data, use the ")
+            + chalk.green("editdata") + chalk.gray(" command")
+            + "\r\n\t" + chalk.gray("This will set the data fields sent during the request, and supports multiple fields at once")
+            + "\r\n\t" + chalk.gray("For instance, to set an 'email' field and a 'password' field, use")
+            + "\r\n\t" + chalk.green("editdata email 'email' password 'password'")
+            + chalk.gray(" and so on")
+            + "\r\n\t" + chalk.gray("Each field needs to be followed by a value")
+            + "\r\n\r\n\t" + chalk.gray("There are extensions available to generate the field values")
+            + "\r\n\t" + chalk.gray("These are accessed by putting $extensionName(extensionArguments) inside the value text, for example")
+            + "\r\n\t" + chalk.green("editdata email '$str(5,7)@$mail()'")
+            + "\r\n\t" + chalk.gray("Will generate the value of the 'email' field with 5-7 random letters @ a random mail domain")
+            + "\r\n\r\n\t" + chalk.gray("See the ")
+            + chalk.green("helpextensions")
+            + chalk.gray(" command for a documentation of the extensions and their usage")
+            + "\r\n\r\n\t" + chalk.gray("To remove a request data field, use the ")
+            + chalk.green("removedata") + chalk.gray(" command")
+            + "\r\n\t" + chalk.gray("This also supports multiple fields at once, for instance")
+            + "\r\n\t" + chalk.green("removeheaders username password")
+            + "\r\n\r\n\t" + chalk.gray("See the ")
+            + chalk.green("help editdata")
+            + chalk.gray(" and ")
+            + chalk.green("help removedata")
+            + chalk.gray(" command for more usage")
+        );
+
+        log(
+            "\r\n" + chalk.whiteBright("Edit user agent")
+            + "\r\n\t" + chalk.gray("The user agent is what the server will see your browser named as in the request header")
+            + "\r\n\t" + chalk.gray("There is a shortcut command for changing this, use the ")
+            + chalk.green("edituseragent")
+            + chalk.gray(" command")
+            + "\r\n\t" + chalk.gray("For instance, to change the user agent to nodejs, use")
+            + "\r\n\t" + chalk.green("edituseragent nodejs")
+        );
+
+        log(
+            "\r\n" + chalk.whiteBright("Sending single requests")
+            + "\r\n\t" + chalk.gray("To send a single request with the given configuration, use the ")
+            + chalk.green("sendrequest")
+            + chalk.gray(" command")
+            + "\r\n\t" + chalk.gray("It supports setting custom request data, and multiple fields at once")
+            + "\r\n\t" + chalk.gray("For instance, to send a single request with a custom 'email' field, use ")
+            + "\r\n\t" + chalk.green("sendrequest email 'example@mail.com'")
+            + "\r\n\t" + chalk.gray("Each field needs to be followed by a value")
+            + "\r\n\t" + chalk.gray("If you do not specify custom fields, it will simply send already configured fields")
+            + "\r\n\r\n\t" + chalk.gray("See the ")
+            + chalk.green("help sendrequest")
+            + chalk.gray(" command for more usage")
+        );
+
+        log(
+            "\r\n" + chalk.whiteBright("Repeating requests")
+            + "\r\n\t" + chalk.gray("To start sending repeated requests, use the ")
+            + chalk.green("startrepeater")
+            + chalk.gray(" command")
+            + "\r\n\t" + chalk.gray("It supports an interval in milliseconds and repeat count")
+            + "\r\n\t" + chalk.gray("For instance, to send repeated requests with a 500ms interval 10 times, use")
+            + "\r\n\t" + chalk.green("startrepeater 500 10")
+            + "\r\n\t" + chalk.gray("If a count is not specified, it will continue until told to stop, for example")
+            + "\r\n\t" + chalk.green("startrepeater 500")
+            + "\r\n\t" + chalk.gray("The repeater will send the defined data fields, and re-evaluate the fields each iteration")
+            + "\r\n\r\n\t" + chalk.gray("See the ")
+            + chalk.green("help startrepeater")
+            + chalk.gray(" command for more usage")
+        );
+
+        log();
+
     };
 
     /**
@@ -502,7 +719,7 @@ var AppCli = function () {
         vorpal
             .command(
                 'editheaders <headers...>',
-                "Edits or adds request headers. Example: editheaders \'Content-Type\' \'application/json\' \'User-Agent\' \'The mighty ragnarok!\'"
+                "Edits or adds request headers. Example: editheaders \'Content-Type\' \'application/json\' \'User-Agent\' \'nodejs\'"
             )
             .action(function (args, callback) {
                 editHeaders(args);
@@ -522,7 +739,7 @@ var AppCli = function () {
 
         // Edit sender options
         var encoderDescText = "Sets the encoder to use while writing data"
-            + "\r\n\r\n  Type can be either of the below:";
+            + "\r\n\r\n  Encoder can be either of the below:";
 
         _.each(requestSender.getValidEncoders(), function (entry) {
             encoderDescText += util.format("\r\n\t%s", entry);
@@ -536,7 +753,7 @@ var AppCli = function () {
             .option('--no-ignore-timeout', 'Stops the repeater in case of request timeout. This is disabled by default.')
             .option('--follow-redirects', 'Enables following redirects when sending requests. Default is to enable redirects')
             .option('--no-follow-redirects', 'Disables following redirects when sending requests. Default is to enable redirects')
-            .option('--max-redirects <redirects>', "Sets the maximum allowed redirects of the sender (Provided that following redirects are allowed)")
+            .option('--max-redirects <redirects>', "Sets the maximum allowed redirects of the request (Provided that following redirects are allowed)")
             .option('--timeout <timeout>', "Sets the request timeout (in milliseconds)")
             .option('--encoder <encoder>', encoderDescText)
             .action(function (args, callback) {
@@ -669,6 +886,28 @@ var AppCli = function () {
                 printAll();
                 callback();
             });
+
+        // Print syntax processor documentation
+        vorpal
+            .command(
+                'helpextensions',
+                "Shows the documentation for the extension functions and how to use them"
+            )
+            .action(function (args, callback) {
+                helpExtensions();
+                callback();
+            });
+
+        // Print basic usage guide
+        vorpal
+            .command(
+                'helpusage',
+                "Shows the basic usage guide"
+            )
+            .action(function (args, callback) {
+                helpUsage();
+                callback();
+            });
     };
 
     /**
@@ -783,7 +1022,7 @@ var AppCli = function () {
         initCommands();
         initListeners();
 
-        log("Type 'help' for command usage");
+        log("Type 'help' for command usage, or 'helpusage' for a basic guide");
 
         vorpal
             .delimiter('Node Request Sender > ')

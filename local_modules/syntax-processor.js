@@ -19,10 +19,20 @@ var SyntaxProcessor = function () {
     ];
 
     var extensions = {
-        // Random text sequence generator
-        // Usage: $str(minLength,maxLength)
         str: {
             args: 2,
+            doc: {
+                description: "Generates a random character sequence of desired length",
+                args: [
+                    { name: 'min',
+                        type: "number",
+                        desc: "Minimum length" },
+                    { name: 'max',
+                        type: "number",
+                        desc: "Maximum length" }
+                ],
+                sampleUsage: "$str(5,7) generates a random character sequence between 5-7 characters"
+            },
             callback: function (min, max) {
                 var result = "";
                 var strLen = getRandomLength(min, max);
@@ -35,10 +45,20 @@ var SyntaxProcessor = function () {
             }
         },
 
-        // Random number sequence generator
-        // Usage: $num(minLength,maxLength)
         num: {
             args: 2,
+            doc: {
+                description: "Generates a random number sequence of desired length",
+                args: [
+                    { name: 'min',
+                        type: "number",
+                        desc: "Minimum length" },
+                    { name: 'max',
+                        type: "number",
+                        desc: "Maximum length" }
+                ],
+                sampleUsage: "$num(2,3) generates a random number sequence between 2-3 digits"
+            },
             callback: function (min, max) {
                 var result = "";
                 var strLen = getRandomLength(min, max);
@@ -51,23 +71,34 @@ var SyntaxProcessor = function () {
             }
         },
 
-        // Random text selector
-        // Usage: $text('text1', 'text2', ...)
         text: {
             args: 'var',
+            doc: {
+                description: "Picks a random text element from a list of texts",
+                sampleUsage: "$text('text1', 'text2', 'text3') picks a random text from the list, text2 for example"
+            },
             callback: function () {
                 return getRandomElement(arguments);
             }
         },
 
-        // Random mail domain selector
-        // Usage: $mail()
         mail: {
             args: 0,
+            doc: {
+                description: "Generates a random mail domain",
+                sampleUsage: "$mail() generates a random mail domain, gmail.com for example"
+            },
             callback: function () {
                 return getRandomElement(VALID_MAILDOMAINS);
             }
         }
+    };
+
+    /**
+     * Gets the extensions
+     */
+    var getExtensions = function () {
+        return extensions;
     };
 
     /**
@@ -166,6 +197,7 @@ var SyntaxProcessor = function () {
     };
 
     return {
+        getExtensions: getExtensions,
         processSyntax: processSyntax
     };
 
