@@ -71,6 +71,25 @@ var AppCli = function () {
     };
 
     /**
+     * Awaits for any requests to finish, and calls the callback function
+     *
+     * @param {function} callback Callback
+     */
+    var awaitRequestFinish = function (callback) {
+        requestSender.once('request-error', function () {
+            callback();
+        });
+
+        requestSender.once('request-success', function () {
+            callback();
+        });
+
+        requestSender.once('request-fail', function () {
+            callback();
+        });
+    };
+
+    /**
      * Prints out a map with a header
      *
      * @param {string} header Header
@@ -332,23 +351,7 @@ var AppCli = function () {
      * Sends a single request
      */
     var sendRequest = function (args, callback) {
-        requestSender.once('request-error', function () {
-            if (typeof callback !== 'undefined') {
-                callback();
-            }
-        });
-
-        requestSender.once('request-success', function () {
-            if (typeof callback !== 'undefined') {
-                callback();
-            }
-        });
-
-        requestSender.once('request-fail', function () {
-            if (typeof callback !== 'undefined') {
-                callback();
-            }
-        });
+        awaitRequestFinish(callback);
 
         if (!args.hasOwnProperty('data')) {
             requestSender.autoSendRequest();
@@ -379,7 +382,9 @@ var AppCli = function () {
      */
     var startRepeater = function (args, callback) {
         requestSender.once('repeater-stop', function () {
-            if (typeof callback !== 'undefined') {
+            if (requestSender.isRequestLocked()) {
+                awaitRequestFinish(callback);
+            } else {
                 callback();
             }
         });
@@ -671,12 +676,12 @@ var AppCli = function () {
      */
     var initListeners = function () {
         requestSender.on('request-start', function (data, requestOptions) {
-            var logText = chalk.whiteBright(
-                "Attempting to send "
-                + requestOptions.method
-                + " request to "
-                + requestSender.getFullRequestPath()
-            );
+            var logText = chalk.whiteBright(util.format(
+                "Attempting to send %s request to %s",
+                requestOptions.method,
+                requestSender.getFullRequestPath()
+            ));
+
             var hasData = _.keys(data).length !== 0;
 
             if (hasData) {
@@ -702,7 +707,7 @@ var AppCli = function () {
                 );
             } else {
                 log(
-                    chalk.red("Request error (" + err.code + ")")
+                    chalk.red(util.format("Request error (%s)", err.code))
                     + "\r\n"
                 );
             }
@@ -716,12 +721,11 @@ var AppCli = function () {
                 );
             } else {
                 log(
-                    chalk.yellowBright(
-                        "Request sent, but recieved "
-                        + res.statusCode
-                        + " status"
-                        + " (" + res.statusMessage + ")"
-                    )
+                    chalk.yellowBright(util.format(
+                        "Request sent, but recieved HTTP %d status (%s)",
+                        res.statusCode,
+                        res.statusMessage
+                    ))
                     + "\r\n"
                 );
             }
@@ -729,12 +733,11 @@ var AppCli = function () {
 
         requestSender.on('request-fail', function (data, res, requestOptions) {
             log(
-                chalk.red(
-                    "Request failed! Recieved "
-                    + res.statusCode
-                    + " status"
-                    + " (" + res.statusMessage + ")"
-                )
+                chalk.red(util.format(
+                    "Request failed! Recieved HTTP %d status (%s)",
+                    res.statusCode,
+                    res.statusMessage
+                ))
                 + "\r\n"
             );
         });
@@ -742,18 +745,19 @@ var AppCli = function () {
         requestSender.on('repeater-start', function (rInterval, count) {
             if (count === 0) {
                 log(
-                    chalk.whiteBright(
-                        "Starting request repeater with indefinite repetitions"
-                        + " (" + rInterval + "ms interval)"
-                    )
+                    chalk.whiteBright(util.format(
+                        "Starting request repeater with indefinite repetitions (%dms interval)",
+                        rInterval
+                    ))
                     + "\r\n"
                 );
             } else {
                 log(
-                    chalk.whiteBright(
-                        "Starting request repeater with " + count + " repetitions"
-                        + " (" + rInterval + "ms interval)"
-                    )
+                    chalk.whiteBright(util.format(
+                        "Starting request repeater with %d repetitions (%dms interval)",
+                        rInterval,
+                        count
+                    ))
                     + "\r\n"
                 );
             }

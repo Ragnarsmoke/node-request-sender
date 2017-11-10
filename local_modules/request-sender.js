@@ -35,7 +35,7 @@ var RequestSender = function () {
     var listeners = [];
 
     var requestOptions = {
-        host: '',
+        host: '127.0.0.1',
         method: 'GET',
         port: 80,
         path: '/',
