@@ -11,4 +11,7 @@ or if you wish to install the dependencies globally on your system(Requires admi
 use `npm install -g`
 
 ## Usage<a name="usage"></a>
-Run the program with `node app.js`
+Run the application with `node app.js`  
+To see available commands, use the `help` command  
+To see a basic usage guide, use the `helpusage` command  
+To see the extension documentation, use the `helpextension` command  
