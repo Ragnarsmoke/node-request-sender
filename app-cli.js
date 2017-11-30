@@ -385,7 +385,9 @@ var AppCli = function () {
             + "\r\n\t" + chalk.gray("If a count is not specified, it will continue until told to stop, for example")
             + "\r\n\t" + chalk.green("startrepeater 500")
             + "\r\n\t" + chalk.gray("The repeater will send the defined data fields, and re-evaluate the fields each iteration")
-            + "\r\n\r\n\t" + chalk.gray("To stop a running repeater, press Ctrl+C")
+            + "\r\n\r\n\t" + chalk.gray("To stop a running repeater, press Ctrl+C, or use the")
+            + "\r\n\t" + chalk.green("stoprepeater")
+            + chalk.gray(" command")
             + "\r\n\r\n\t" + chalk.gray("See the ")
             + chalk.green("help startrepeater")
             + chalk.gray(" command for more usage")
@@ -623,6 +625,13 @@ var AppCli = function () {
     };
 
     /**
+     * Starts the repeater
+     */
+    var stopRepeater = function () {
+        requestSender.stopRepeater();
+    };
+
+    /**
      * Edits the request options
      */
     var editOptions = function (args) {
@@ -833,6 +842,16 @@ var AppCli = function () {
                 startRepeater(args, callback);
             });
 
+        // Stops the request repeater
+        vorpal
+            .command(
+                'stoprepeater',
+                "Stops an active repeater"
+            )
+            .action(function (args, callback) {
+                stopRepeater();
+                callback();
+            });
         // Print request options
         vorpal
             .command(
